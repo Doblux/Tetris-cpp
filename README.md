@@ -1,3 +1,3 @@
 # Basic Tetris game in C++ with Raylib
 
-![[imagenes/img.png]]
+![Tetris](imagenes/img){width=100 height=100}
