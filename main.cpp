@@ -1,6 +1,6 @@
 #include <raylib.h>
-#include "cuadricula.h"
-#include "juego.cpp"
+#include "./include/cuadricula.h"
+#include "./include/juego.cpp"
 
 
 double lastUpdateTime = 0;
@@ -44,6 +44,7 @@ int main(){
             if (IsKeyPressed(KEY_LEFT)) j.mover_izquierda(c);
             if (IsKeyPressed(KEY_RIGHT)) j.mover_derecha(c);
             if (IsKeyPressed(KEY_DOWN)) j.mover_hacia_abajo(c);
+
             BeginDrawing();
             ClearBackground(BLACK);
             j.draw_grid(c);
