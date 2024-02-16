@@ -1,6 +1,6 @@
 #include "juego.h"
 #include "cuadricula.h"
-#include <raylib.h>
+#include "./raylib/src/raylib.h"
 #include <string>
 #include <utility>
 
@@ -11,12 +11,9 @@ juego::juego(){
     SetTargetFPS(60);
     InitAudioDevice();
     music = LoadMusicStream("Music/Tetris.mp3");
-    PlayMusicStream(music);
     _img_blocks = LoadTexture("assets/Tetris.png");
-//    _img_blocks.mipmaps = 1;
-//    _img_blocks.width = 510;
-//    _img_blocks.height = 30;
-
+    fuente_de_texto = LoadFont("assets/IosevkaTermNerdFont-MediumItalic.ttf");
+    music_volume = 1.0;
     _score = 0;
     _actual_id = 0;
     rotation_state = 0;
@@ -52,11 +49,13 @@ juego::juego(){
 }
 
 juego::~juego(){
+    UnloadFont(fuente_de_texto);
     UnloadTexture(_img_blocks);
     UnloadMusicStream(music);
     CloseAudioDevice();
     CloseWindow();
 }
+
 
 void juego::draw_grid(cuadricula& cuadricula){
     for (int i = 0; i < 20; i++){
@@ -307,5 +306,106 @@ void juego::draw_interface(){
 
 void juego::actualizar_score(cuadricula&c){
     _score = 10 * c._lineas_completas;
+}
+
+
+void juego::draw_game_over_screen(Button_t& replay, Button_t& close_window){
+    BeginDrawing();
+    ClearBackground(BLACK);
+    DrawTextEx(fuente_de_texto, "GAME OVER" , (Vector2){220, 150}, 50.0, 5.0, RED);
+    DrawRectangle(replay.rect.x, replay.rect.y, replay.rect.width, replay.rect.height, LIME);
+    DrawRectangle(close_window.rect.x, close_window.rect.y, close_window.rect.width, close_window.rect.height, LIME);
+    DrawTextEx(fuente_de_texto, replay.text, (Vector2){130.0, 430.0}, 50.0, 5.0, replay.color);
+    DrawTextEx(fuente_de_texto, close_window.text, (Vector2){350.0, 430.0}, 50.0, 5.0, close_window.color);
+    EndDrawing();
+}
+
+
+void juego::resetear_cuadricula(cuadricula& c){
+    for (int i = 0; i < 20; i++){
+        for (int j = 0; j < 10; j++){
+            c.c[i][j] = 0;
+        }
+    }
+}
+
+
+void juego::draw_main_menu(game_state& g){
+    Button_t start_game;
+    start_game.color = SKYBLUE;
+    start_game.text = "START GAME";
+    start_game.rect = (Rectangle){50.0, 50.0, 560, 200};
+    Button_t settings;
+    settings.color = SKYBLUE;
+    settings.text = "SETTINGS";
+    settings.rect = (Rectangle){50.0, 400.0, 560, 200};
+    BeginDrawing();
+    ClearBackground(BLACK);
+    DrawRectangle(start_game.rect.x, start_game.rect.y, start_game.rect.width, start_game.rect.height, DARKBLUE);
+    DrawTextEx(fuente_de_texto, start_game.text, (Vector2){205.0, 125}, 50.0, 5.0, WHITE);
+    DrawRectangle(settings.rect.x, settings.rect.y, settings.rect.width, settings.rect.height, DARKBLUE);
+    DrawTextEx(fuente_de_texto, settings.text, (Vector2){220.0, 505}, 50.0, 5.0, WHITE);
+    
+    if (CheckCollisionPointRec(GetMousePosition(), start_game.rect) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+        g = GAME;
+    }
+
+    if (CheckCollisionPointRec(GetMousePosition(), settings.rect) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+        g = SETTINGS;
+    }
+    EndDrawing();
+}
+
+
+
+void juego::draw_settings_menu(game_state& g){
+    Vector2 comienzo_volumen = {50.0, 200.0};
+    Vector2 final_volumen = {610.0, 200.0};
+    Button_t subir_vol;
+    Button_t bajar_vol;
+    subir_vol.rect = (Rectangle){50.0, 250.0, 50.0, 50.0};
+    subir_vol.text = "+";
+    subir_vol.color = PINK;
+    
+    bajar_vol.rect = (Rectangle){200.0, 250.0, 50.0, 50.0};
+    bajar_vol.text = "-";
+    bajar_vol.color = PINK;
+
+    Button_t comenzar_juego;
+    comenzar_juego.rect = (Rectangle){50.0, 350.0, 200.0, 200.0};
+    comenzar_juego.text = "PLAY";
+    comenzar_juego.color = PINK;
+
+    BeginDrawing();
+    ClearBackground(BLACK);
+    DrawLineV(comienzo_volumen, final_volumen, WHITE);
+    DrawCircle(((final_volumen.x - comienzo_volumen.x) * music_volume) + comienzo_volumen.x, final_volumen.y, 5.0, RED);
+    DrawTextEx(fuente_de_texto, "VOLUME", (Vector2){260.0, 100.0}, 50.0, 5.0, PINK);
+    DrawRectangle(subir_vol.rect.x, subir_vol.rect.y, subir_vol.rect.width, subir_vol.rect.height, subir_vol.color);
+    DrawTextEx(fuente_de_texto, subir_vol.text, (Vector2){subir_vol.rect.x + 15, subir_vol.rect.y}, 50.0, 5.0, BLACK);
+    DrawRectangle(bajar_vol.rect.x, bajar_vol.rect.y, bajar_vol.rect.width, bajar_vol.rect.height, bajar_vol.color);
+    DrawTextEx(fuente_de_texto, bajar_vol.text, (Vector2){bajar_vol.rect.x + 15, bajar_vol.rect.y}, 50.0, 5.0, BLACK);
+    
+    DrawRectangle(comenzar_juego.rect.x, comenzar_juego.rect.y, comenzar_juego.rect.width, comenzar_juego.rect.height, comenzar_juego.color);
+    DrawTextEx(fuente_de_texto, comenzar_juego.text, (Vector2){comenzar_juego.rect.x + 50, comenzar_juego.rect.y + 80}, 50.0, 5.0, BLACK);
+
+    if (CheckCollisionPointRec(GetMousePosition(), subir_vol.rect) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+        if (music_volume < 1.0 ){
+            music_volume += 0.1;
+            SetAudioStreamVolume(music.stream, music_volume);
+        }
+    }
+    if (CheckCollisionPointRec(GetMousePosition(), bajar_vol.rect) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+        if (music_volume > 0.0 ){
+            music_volume -= 0.1;
+            SetAudioStreamVolume(music.stream, music_volume);
+        }
+    }
+
+    if (CheckCollisionPointRec(GetMousePosition(), comenzar_juego.rect) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+        g = GAME;
+    }
+
+    EndDrawing();
 }
 

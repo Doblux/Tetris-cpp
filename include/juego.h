@@ -4,18 +4,24 @@
 #include "cuadricula.cpp"
 #include "cuadricula.h"
 #include <map>
-#include <raylib.h>
+#include "./raylib/src/raylib.h"
 #include <vector>
 #include <utility>
 
 using namespace std;
 
-// TO DO
 
-//typedef enum {
-//    MAIN_MENU,
-//    
-//} game_state;
+typedef enum {
+    MAIN_MENU,
+    SETTINGS,
+    GAME,
+} game_state;
+
+typedef struct {
+    Rectangle rect;
+    Color color;
+    const char* text;
+} Button_t;
 
 
 class juego {
@@ -24,6 +30,7 @@ public:
     ~juego();
     void draw_grid(cuadricula& c);
     void draw_interface();
+    void draw_game_over_screen(Button_t& replay, Button_t& close_window);
     void nuevo_bloque(cuadricula& c);
     bool gameOver;
     bool puedo_seguir_bajando;
@@ -36,6 +43,10 @@ public:
     pair<int, int> obtenerIndex_de_los_offset(int& id, vector<pair<int, int>>& bloque_actual, int i);
     void actualizar_score(cuadricula& c);
     Music music;
+    float music_volume;
+    void resetear_cuadricula(cuadricula& c);
+    void draw_main_menu(game_state& g);
+    void draw_settings_menu(game_state& g);
 private:
     void ActualizarEstadoDeRotacion(int id);
     // offsets de las rotaciones
@@ -52,6 +63,7 @@ private:
     int _score;
     string __text__ = "SCORE:";
     Texture2D _img_blocks;
+    Font fuente_de_texto;
 };
 
 #endif
